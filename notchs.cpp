@@ -2,6 +2,7 @@
 using namespace std;
 
 enum charms{
+    CoracaoVazio,
     BussolaCaprichosa,
     EnxamedeColecionadores,
     PortadordosSonhos,
@@ -46,11 +47,11 @@ enum charms{
     SanguedaColmeia,
     FocoProfundo,
     AlmadoRei,
-    CoracaoVazio,
     TotalCharms
 };
 
 int charmsSlots[] = {
+    0, // CoracaoVazio
     1, // BussolaCaprichosa
     1, // EnxamedeColecionadores
     1, // PortadordosSonhos
@@ -95,10 +96,72 @@ int charmsSlots[] = {
     4, // SanguedaColmeia
     4, // FocoProfundo
     5, // AlmadoRei
-    0, // CoracaoVazio
+};
+
+const char *charmsNames[] = {
+    "CoracaoVazio",
+    "BussolaCaprichosa",
+    "EnxamedeColecionadores",
+    "PortadordosSonhos",
+    "GloriadoMestredoFerrao",
+    "CogumelocomEsporos",
+    "InsigniadoDefensor",
+    "CorpoFirme",
+    "EspinhosdaAgonia",
+    "MestredaCorrida",
+    "CancaodasLarvas",
+    "CarapacaRobusta",
+    "ApanhadordeAlmas",
+    "MestredaEsquiva",
+    "CoracaoFragil",
+    "CoracaoInquebravel",
+    "GananciaFragil",
+    "GananciaInquebravel",
+    "SombraAfiada",
+    "FormadeUnn",
+    "CancaodasTecelas",
+    "CriancaGrimm",
+    "FuriadosCaidos",
+    "CarapaçadeBaldur",
+    "UteroBrilhante",
+    "CoracaodeSangueVital",
+    "GolpePesado",
+    "FerraoLongo",
+    "PedradoXama",
+    "ElegiadaLarvamosca",
+    "ForcaFragil",
+    "ForcaInquebravel",
+    "DobradordeMagias",
+    "CorteRapido",
+    "MarcadeOrgulho",
+    "NinhodeFlukes",
+    "FocoRapido",
+    "NucleodeSangueVital",
+    "EscudodosSonhos",
+    "MelodiaDespreocupada",
+    "DevoradordeAlmas",
+    "BencaodeJoni",
+    "SanguedaColmeia",
+    "FocoProfundo",
+    "AlmadoRei",
 };
 
 int64_t charmsExcludes[TotalCharms] = {};
+
+#define ACTIVE(N, I) (N & (1ll << I))
+
+void print(int64_t build){
+    int t = 0;
+    if(!ACTIVE(build, AlmadoRei))
+        printf("%s: %d, ", charmsNames[CoracaoVazio], charmsSlots[CoracaoVazio]);
+    for(int i = 1; i < TotalCharms; i++){
+        if(ACTIVE(build, i)){
+            t += charmsSlots[i];
+            printf("%s: %d, ", charmsNames[i], charmsSlots[i]);
+        }
+    }
+    printf("Total: %d\n", t);
+}
 
 int main(){
     auto addExcludes = [](charms a, charms b){
@@ -114,24 +177,26 @@ int main(){
 
     vector<int64_t> validCombinationsExact, validCombinationsOver;
     stack<tuple<int64_t, int, int>> q;
-    q.emplace(0, 0, 0);
+    q.emplace(0, 1, 0);
     int m = 11;
 
     while(q.size()){
         auto [currentCombination, i, qtd] = q.top();
         q.pop();
 
-        if(qtd >= m){
-            (qtd > m ? validCombinationsOver : validCombinationsExact).emplace_back(currentCombination);
+        if(qtd == m){
+            validCombinationsExact.emplace_back(currentCombination);
             continue;
         }
 
-        if(i == CoracaoVazio)
+        if(i == TotalCharms)
             continue;
 
-        if(!(currentCombination & charmsExcludes[i])){
+        if(qtd + charmsSlots[i] <= m && !(currentCombination & charmsExcludes[i]))
             q.emplace(currentCombination | (1ll << i), i + 1, qtd + charmsSlots[i]);
-        }
+
+        if(qtd + 1 == m && i >= CarapacaRobusta && !(currentCombination & charmsExcludes[i]))
+            validCombinationsOver.emplace_back(currentCombination | (1ll << i));
 
         q.emplace(currentCombination, i + 1, qtd);
     }
