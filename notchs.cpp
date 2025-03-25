@@ -30,11 +30,11 @@ enum charms{
     CoracaodeSangueVital,
     GolpePesado,
     FerraoLongo,
+    DobradordeMagias,
     PedradoXama,
     ElegiadaLarvamosca,
     ForcaFragil,
     ForcaInquebravel,
-    DobradordeMagias,
     CorteRapido,
     MarcadeOrgulho,
     NinhodeFlukes,
@@ -79,11 +79,11 @@ int charmsSlots[] = {
     2, // CoracaodeSangueVital
     2, // GolpePesado
     2, // FerraoLongo
+    2, // DobradordeMagias
     3, // PedradoXama
     3, // ElegiadaLarvamosca
     3, // ForcaFragil
     3, // ForcaInquebravel
-    2, // DobradordeMagias
     3, // CorteRapido
     3, // MarcadeOrgulho
     3, // NinhodeFlukes
@@ -127,11 +127,11 @@ const char *charmsNames[] = {
     "CoracaodeSangueVital",
     "GolpePesado",
     "FerraoLongo",
+    "DobradordeMagias",
     "PedradoXama",
     "ElegiadaLarvamosca",
     "ForcaFragil",
     "ForcaInquebravel",
-    "DobradordeMagias",
     "CorteRapido",
     "MarcadeOrgulho",
     "NinhodeFlukes",
@@ -153,11 +153,11 @@ int64_t charmsExcludes[TotalCharms] = {};
 void print(int64_t build){
     int t = 0;
     if(!ACTIVE(build, AlmadoRei))
-        printf("%s: %d, ", charmsNames[CoracaoVazio], charmsSlots[CoracaoVazio]);
+        printf("%s%d, ", charmsNames[CoracaoVazio], charmsSlots[CoracaoVazio]);
     for(int i = 1; i < TotalCharms; i++){
         if(ACTIVE(build, i)){
             t += charmsSlots[i];
-            printf("%s: %d, ", charmsNames[i], charmsSlots[i]);
+            printf("%s%d, ", charmsNames[i], charmsSlots[i]);
         }
     }
     printf("Total: %d\n", t);
@@ -192,13 +192,15 @@ int main(){
         if(i == TotalCharms)
             continue;
 
-        if(qtd + charmsSlots[i] <= m && !(currentCombination & charmsExcludes[i]))
-            q.emplace(currentCombination | (1ll << i), i + 1, qtd + charmsSlots[i]);
-
-        if(qtd + 1 == m && i >= CarapacaRobusta && !(currentCombination & charmsExcludes[i]))
-            validCombinationsOver.emplace_back(currentCombination | (1ll << i));
-
-        q.emplace(currentCombination, i + 1, qtd);
+        if(qtd + 1 == m){
+            for(int j = i; j < TotalCharms; j++)
+                if(!(currentCombination & charmsExcludes[j]))
+                        validCombinationsOver.emplace_back(currentCombination | (1ll << j));
+        }else{
+            for(int j = i; j < TotalCharms && qtd + charmsSlots[j] <= m; j++)
+                if(!(currentCombination & charmsExcludes[j]))
+                    q.emplace(currentCombination | (1ll << j), j + 1, qtd + charmsSlots[j]);
+        }
     }
 
     int maxSize = ceil(log10(validCombinationsExact.size() + validCombinationsOver.size() + 1));
